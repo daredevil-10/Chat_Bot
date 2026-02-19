@@ -4,8 +4,12 @@
   "workspaces": {
     "": {
       "name": "chatbot",
+      "dependencies": {
+        "express": "^5.2.1",
+      },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/express": "^5.0.6",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -13,12 +17,8 @@
     },
     "packages/server": {
       "name": "server",
-      "dependencies": {
-        "express": "^5.2.1",
-      },
       "devDependencies": {
         "@types/bun": "latest",
-        "@types/express": "^5.0.6",
       },
       "peerDependencies": {
         "typescript": "^5",
