@@ -12,7 +12,7 @@ useEffect(()=>{
 
   return (
     <>
-    <p>{message}</p>
+    <p className="text-red-500 font-bold ">{message}</p>
 
     </>
     
