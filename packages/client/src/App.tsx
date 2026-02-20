@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 function App() {
 const [message, setMessage] = useState("");
@@ -11,10 +12,11 @@ useEffect(()=>{
 }, [])
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center h-screen">
     <p className="text-red-500 font-bold ">{message}</p>
+    <Button>Click me</Button>
 
-    </>
+    </div>
     
   )
 }
