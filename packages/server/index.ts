@@ -23,6 +23,7 @@ const chatSchema = z.object({
    sessionId: z.uuid().optional(),
    prompt: z
       .string()
+      .trim()
       .min(1, 'Prompt is required')
       .max(1000, 'Prompt is too long (max 1000 characters)'),
 });
@@ -33,28 +34,33 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       res.status(400).json(z.treeifyError(parseResult.error));
       return;
    }
-   let { sessionId, prompt } = req.body;
-   if (!sessionId) {
-      sessionId = uuidv4();
-      sessions[sessionId] = [];
-   }
-   const history = (sessions[sessionId] ??= []);
-   /* if (!sessions[sessionId]) {
+
+   try {
+      let { sessionId, prompt } = req.body;
+      if (!sessionId) {
+         sessionId = uuidv4();
+         sessions[sessionId] = [];
+      }
+      const history = (sessions[sessionId] ??= []);
+      /* if (!sessions[sessionId]) {
        sessions[sessionId] = [];
    }
      const history = sessions[sessionId];*/
 
-   history.push({ role: 'user', content: prompt });
+      history.push({ role: 'user', content: prompt });
 
-   const response = await OllamaClient.chat({
-      model: 'llama3.1',
-      messages: history,
-      options: {
-         num_predict: 100,
-      },
-   });
-   history?.push(response.message);
-   res.json({ sessionId, message: response.message.content });
+      const response = await OllamaClient.chat({
+         model: 'llama3.1',
+         messages: history,
+         options: {
+            num_predict: 100,
+         },
+      });
+      history?.push(response.message);
+      res.json({ sessionId, message: response.message.content });
+   } catch (error) {
+      res.status(500).json({ error: 'Failed to generate a response.' });
+   }
 });
 
 app.listen(port, (): void => {
