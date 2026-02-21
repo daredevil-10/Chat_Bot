@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { Ollama } from 'ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import { sessionRepository } from './repositories/session.repository';
+import { get } from 'ollama/src/utils.js';
 
 dotenv.config();
 
@@ -27,7 +29,7 @@ const chatSchema = z.object({
       .min(1, 'Prompt is required')
       .max(1000, 'Prompt is too long (max 1000 characters)'),
 });
-const sessions: Record<string, any[]> = {};
+
 app.post('/api/chat', async (req: Request, res: Response) => {
    const parseResult = chatSchema.safeParse(req.body);
    if (!parseResult.success) {
@@ -39,15 +41,15 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       let { sessionId, prompt } = req.body;
       if (!sessionId) {
          sessionId = uuidv4();
-         sessions[sessionId] = [];
+         sessionRepository.create(sessionId);
       }
-      const history = (sessions[sessionId] ??= []);
+      const history = sessionRepository.get(sessionId);
       /* if (!sessions[sessionId]) {
        sessions[sessionId] = [];
    }
      const history = sessions[sessionId];*/
 
-      history.push({ role: 'user', content: prompt });
+      sessionRepository.append(sessionId, { role: 'user', content: prompt });
 
       const response = await OllamaClient.chat({
          model: 'llama3.1',
@@ -56,7 +58,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
             num_predict: 100,
          },
       });
-      history?.push(response.message);
+      sessionRepository.append(sessionId, response.message);
       res.json({ sessionId, message: response.message.content });
    } catch (error) {
       res.status(500).json({ error: 'Failed to generate a response.' });
