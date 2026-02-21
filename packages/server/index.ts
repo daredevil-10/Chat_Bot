@@ -5,7 +5,6 @@ import { Ollama } from 'ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { sessionRepository } from './repositories/session.repository';
-import { get } from 'ollama/src/utils.js';
 
 dotenv.config();
 
