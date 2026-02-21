@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { Ollama } from 'ollama';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 dotenv.config();
 
@@ -18,8 +19,20 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/api/hello', (req: Request, res: Response) => {
    res.send({ message: 'Hello World!' });
 });
+const chatSchema = z.object({
+   sessionId: z.uuid().optional(),
+   prompt: z
+      .string()
+      .min(1, 'Prompt is required')
+      .max(1000, 'Prompt is too long (max 1000 characters)'),
+});
 const sessions: Record<string, any[]> = {};
 app.post('/api/chat', async (req: Request, res: Response) => {
+   const parseResult = chatSchema.safeParse(req.body);
+   if (!parseResult.success) {
+      res.status(400).json(z.treeifyError(parseResult.error));
+      return;
+   }
    let { sessionId, prompt } = req.body;
    if (!sessionId) {
       sessionId = uuidv4();
