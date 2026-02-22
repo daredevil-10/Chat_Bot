@@ -1,14 +1,12 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { Ollama } from 'ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { sessionRepository } from './repositories/session.repository';
+import { chatService } from './services/chat.service';
 
 dotenv.config();
-
-const OllamaClient = new Ollama();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -42,23 +40,8 @@ app.post('/api/chat', async (req: Request, res: Response) => {
          sessionId = uuidv4();
          sessionRepository.create(sessionId);
       }
-      const history = sessionRepository.get(sessionId);
-      /* if (!sessions[sessionId]) {
-       sessions[sessionId] = [];
-   }
-     const history = sessions[sessionId];*/
-
-      sessionRepository.append(sessionId, { role: 'user', content: prompt });
-
-      const response = await OllamaClient.chat({
-         model: 'llama3.1',
-         messages: history,
-         options: {
-            num_predict: 100,
-         },
-      });
-      sessionRepository.append(sessionId, response.message);
-      res.json({ sessionId, message: response.message.content });
+      const response = await chatService.sendMessage(prompt, sessionId);
+      res.json({ sessionId, message: response.message });
    } catch (error) {
       res.status(500).json({ error: 'Failed to generate a response.' });
    }
