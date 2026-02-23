@@ -1,51 +1,14 @@
 import express from 'express';
-import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid';
-import { z } from 'zod';
-import { sessionRepository } from './repositories/session.repository';
-import { chatService } from './services/chat.service';
-
+import router from './routes';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.get('/', (req: Request, res: Response) => {
-   res.send('Hello World! This is a test response.');
-});
-app.get('/api/hello', (req: Request, res: Response) => {
-   res.send({ message: 'Hello World!' });
-});
-const chatSchema = z.object({
-   sessionId: z.uuid().optional(),
-   prompt: z
-      .string()
-      .trim()
-      .min(1, 'Prompt is required')
-      .max(1000, 'Prompt is too long (max 1000 characters)'),
-});
+app.use(router);
 
-app.post('/api/chat', async (req: Request, res: Response) => {
-   const parseResult = chatSchema.safeParse(req.body);
-   if (!parseResult.success) {
-      res.status(400).json(z.treeifyError(parseResult.error));
-      return;
-   }
-
-   try {
-      let { sessionId, prompt } = req.body;
-      if (!sessionId) {
-         sessionId = uuidv4();
-         sessionRepository.create(sessionId);
-      }
-      const response = await chatService.sendMessage(prompt, sessionId);
-      res.json({ sessionId, message: response.message });
-   } catch (error) {
-      res.status(500).json({ error: 'Failed to generate a response.' });
-   }
-});
+const port = process.env.PORT || 3000;
 
 app.listen(port, (): void => {
    console.log(`Server is running on port http://localhost:${port}`);
