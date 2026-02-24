@@ -21,7 +21,7 @@ export const chatService = {
          model: 'llama3.1',
          messages: history,
          options: {
-            num_predict: 100,
+            num_predict: 1000,
          },
       });
       sessionRepository.append(sessionId, response.message);
