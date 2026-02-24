@@ -1,16 +1,39 @@
 import { Button } from './ui/button';
 import { FaArrowUp } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { useState } from 'react';
 
 type FormData = {
    prompt: string;
 };
 
 const Chatbot = () => {
-   const { register, handleSubmit, reset, formState } = useForm<FormData>();
-   const onSubmit = (data: FormData) => {
-      console.log(data);
-      reset();
+   const [sessionId, setSessionId] = useState<string | null>(null);
+   const { register, handleSubmit, reset, formState } = useForm<FormData>({
+      mode: 'onChange',
+   });
+   const onSubmit = async ({ prompt }: FormData) => {
+      try {
+         const { data } = await axios.post('/api/chat', {
+            prompt,
+            ...(sessionId && { sessionId }),
+         });
+         setSessionId(data.sessionId);
+         reset();
+
+         if (!sessionId) {
+            setSessionId(data.sessionId);
+            localStorage.setItem('sessionId', data.sessionId);
+         }
+         console.log(data);
+      } catch (err: unknown) {
+         if (axios.isAxiosError(err)) {
+            console.error(err.response?.data);
+         } else {
+            console.error(err);
+         }
+      }
    };
    const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
