@@ -22,10 +22,6 @@ const Chatbot = () => {
          setSessionId(data.sessionId);
          reset();
 
-         if (!sessionId) {
-            setSessionId(data.sessionId);
-            localStorage.setItem('sessionId', data.sessionId);
-         }
          console.log(data);
       } catch (err: unknown) {
          if (axios.isAxiosError(err)) {
