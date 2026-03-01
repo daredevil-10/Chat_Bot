@@ -1,7 +1,7 @@
 import Chatbot from './components/Chatbot';
 function App() {
    return (
-      <div>
+      <div className="p-4 h-screen w-full">
          <Chatbot />
       </div>
    );
