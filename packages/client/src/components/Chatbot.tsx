@@ -23,6 +23,7 @@ const Chatbot = () => {
    const [messages, setMessages] = useState<Messages[]>([]);
    const [sessionId, setSessionId] = useState<string | null>(null);
    const [isBotTyping, setIsBotTyping] = useState(false);
+   const [error, setError] = useState<string | null>(null);
    const lastMessageRef = useRef<HTMLDivElement | null>(null);
    const { register, handleSubmit, reset, formState } = useForm<FormData>({
       mode: 'onChange',
@@ -34,6 +35,7 @@ const Chatbot = () => {
       try {
          setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
          setIsBotTyping(true);
+         setError(null);
          reset({ prompt: '' });
          const { data } = await axios.post<ChatResponse>('/api/chat', {
             prompt,
@@ -52,6 +54,8 @@ const Chatbot = () => {
          } else {
             console.error(err);
          }
+         setError('Failed to generate a response.');
+         setIsBotTyping(false);
       }
    };
    const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -92,6 +96,7 @@ const Chatbot = () => {
                   <div className="w-2 h-2 rounded-full bg-gray-800 animate-bounce [animation-delay:0.4s]"></div>
                </div>
             )}
+            {error && <div className="text-red-500 text-sm">{error}</div>}
          </div>
          <form
             onSubmit={handleSubmit(onSubmit)}
